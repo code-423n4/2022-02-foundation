@@ -656,7 +656,7 @@ abstract contract NFTMarketReserveAuction is
   {
     seller = auctionIdToAuction[nftContractToTokenIdToAuctionId[nftContract][tokenId]].seller;
     if (seller == address(0)) {
-      return super._getSellerFor(nftContract, tokenId);
+      seller = super._getSellerFor(nftContract, tokenId);
     }
   }
 

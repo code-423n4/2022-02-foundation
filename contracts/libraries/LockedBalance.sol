@@ -95,10 +95,9 @@ library LockedBalance {
    *       - get `expiration` by peaking at the first 32 bits (done by >> 96)
    *       - get `totalAmount` by peaking at the last 96 bits (done by % (2**96))
    */
-  function get(Lockups storage lockups, uint256 index) internal view returns (Lockup memory) {
+  function get(Lockups storage lockups, uint256 index) internal view returns (Lockup memory balance) {
     unchecked {
       uint256 lockupMetadata = lockups.lockups[index / 2];
-      Lockup memory balance;
       if (lockupMetadata == 0) {
         return balance;
       }
@@ -113,7 +112,6 @@ library LockedBalance {
       // unpack the bits to retrieve the Lockup.
       balance.expiration = uint32(lockedBalanceBits >> 96);
       balance.totalAmount = uint96(lockedBalanceBits % (2**96));
-      return balance;
     }
   }
 }

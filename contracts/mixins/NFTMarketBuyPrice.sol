@@ -356,7 +356,7 @@ abstract contract NFTMarketBuyPrice is NFTMarketCore, NFTMarketFees {
   {
     seller = nftContractToTokenIdToBuyPrice[nftContract][tokenId].seller;
     if (seller == address(0)) {
-      return super._getSellerFor(nftContract, tokenId);
+      seller = super._getSellerFor(nftContract, tokenId);
     }
   }
 
