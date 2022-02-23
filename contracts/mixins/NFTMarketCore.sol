@@ -135,7 +135,7 @@ abstract contract NFTMarketCore is Constants {
    * @dev If the NFT did not have an escrowed seller to return, fall back to return the current owner.
    */
   function _getSellerFor(address nftContract, uint256 tokenId) internal view virtual returns (address payable seller) {
-    return payable(IERC721(nftContract).ownerOf(tokenId));
+    seller = payable(IERC721(nftContract).ownerOf(tokenId));
   }
 
   /**

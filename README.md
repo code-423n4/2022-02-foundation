@@ -146,13 +146,16 @@ Transactions on Ethereum are pretty expensive, so we are interested in optimizat
 
 - Optimizations must be >= 100 gas saved to be eligible for a reward.
 - No features / functionality should be lost.
+- You can check gas costs by running `yarn test`
 
-Contract bytecode must be <= 24.576 KB in order to deploy to the Ethereum network. Our market contract currently sits at 23.765 KB. We need help making room for our next set of features!
+Contract bytecode must be <= 24.576 KB in order to deploy to the Ethereum network. Our market contract currently sits at 23.877 KB. We need help making room for our next set of features!
 
 - Optimizations must be >= 0.1 KB to be eligible for a reward.
+  - Only the FNDNFTMarket contract is eligible (incl mixins of course, FETH is not included since we have plenty of space).
 - They should not cause gas costs to go up for users.
 - No features / functionality should be lost.
+- You can check contract size by running `yarn size-contracts`
 
 ### **How-to submit**
 
-For both categories (gas and size) select `Risk rating`: **`Gas Optimizations`** on the [C4 submission form](https://code4rena.com/contests/2022-02-foundation-contest/submit). In the description, please make it clear which you are optimizing for.
+Please submit both gas optimizations and contract size optimizations in a single report, using the **`Gas optimizations`** risk rating on the [C4 submission form](https://code4rena.com/contests/2022-02-foundation-contest/submit). Contract size recommendations may be grouped under a separate heading within that report.
