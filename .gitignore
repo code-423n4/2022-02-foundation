@@ -11,3 +11,5 @@ artifacts
 yarn-error.log
 
 .openzeppelin/
+
+.DS_Store
