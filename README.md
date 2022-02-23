@@ -11,8 +11,6 @@
 - Starts February 24, 2022 00:00 UTC
 - Ends March 2, 2022 23:59 UTC
 
-This repo will be made public before the start of the contest. (C4 delete this line when made public)
-
 # Overview
 
 The Foundation marketplace is a contract which allows traders to buy and sell NFTs. Previously (the code on mainnet) supported just Auctions and Private Sales. This upcoming launch adds Buy Price and Offers.
