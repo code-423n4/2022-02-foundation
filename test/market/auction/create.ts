@@ -7,6 +7,9 @@ import { ONE_DAY } from "../../helpers/constants";
 import { deployContracts } from "../../helpers/deploy";
 
 describe("NFTMarket / auction / createReserveAuction", () => {
+  const tokenId = 1;
+  const auctionId = 1;
+
   let deployer: SignerWithAddress;
   let creator: SignerWithAddress;
   let market: FNDNFTMarket;
@@ -19,7 +22,7 @@ describe("NFTMarket / auction / createReserveAuction", () => {
     ({ nft, market } = await deployContracts({ deployer, creator }));
     await nft.mint();
     await nft.connect(creator).setApprovalForAll(market.address, true);
-    tx = await market.connect(creator).createReserveAuction(nft.address, 1, price);
+    tx = await market.connect(creator).createReserveAuction(nft.address, tokenId, price);
   });
 
   it("can create auction", async () => {
@@ -28,15 +31,15 @@ describe("NFTMarket / auction / createReserveAuction", () => {
       .withArgs(
         creator.address, // seller
         nft.address, // token
-        1, // tokenID
+        tokenId,
         ONE_DAY, // duration
-        60 * 15, // extensionDuration
+        60 * 15, // 15 min extensionDuration
         price, // reservePrice
-        1, // auctionId
+        auctionId,
       );
   });
 
   it("NFT is in escrow", async () => {
-    expect(await nft.ownerOf(1)).to.eq(market.address);
+    expect(await nft.ownerOf(tokenId)).to.eq(market.address);
   });
 });

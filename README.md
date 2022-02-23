@@ -1,10 +1,10 @@
-- [ ] TODO: update the code to the latest
 - [ ] TODO: fix event documentation
 
 # Foundation contest details
 
 - \$71,250 USDC main award pot
-- \$3,750 USDC gas optimization award pot
+- \$3,750 USDC gas and contract-size optimization award pot
+  - [About size award pot / how-to submit](#gas-and-contract-size-optimization-award-pot)
 - Join [C4 Discord](https://discord.gg/code4rena) to register
 - Submit findings [using the C4 form](https://code4rena.com/contests/2022-02-foundation-contest/submit)
 - [Read our guidelines for more details](https://docs.code4rena.com/roles/wardens)
@@ -15,10 +15,10 @@
 
 The Foundation marketplace is a contract which allows traders to buy and sell NFTs. Previously (the code on mainnet) supported just Auctions and Private Sales. This upcoming launch adds Buy Price and Offers.
 
-- Auctions last for 24 hours. The NFT is escrowed in the market contract when it's listed. As soon as a bid in received the NFT cannot be withdrawn, guaranteeing that the sale will go through and the highest bidder gets the NFT. If a bid is placed in the final minutes of an auction, the countdown timer resets to 15-minutes remaining.
+- Auctions last for 24 hours. The NFT is escrowed in the market contract when it's listed. As soon as a bid is received the NFT cannot be withdrawn, guaranteeing that the sale will go through and the highest bidder gets the NFT. If a bid is placed in the final minutes of an auction, the countdown timer resets to 15-minutes remaining.
 - Private Sales use a EIP-712 signature from the seller to authorize the trade to a specific buyer / price point. The buyer has 24 hours to accept the offer to buy the NFT before the signature expires.
 - Buy Price allows the owner of an NFT to list it for sale at a specific price point. The NFT is escrowed in the market contract when the price is set. Once a collector buys at the price set, the NFT is instantly transferred and revenue is distributed.
-- Offers allow collectors to make an offer for an NFT. The seller has 24-25 hours to accept the offer. During this time, the collector's funds are locked in the FETH ERC-20 contract - ensuring that an offer remains valid until its expiration.
+- Offers allow collectors to make an offer for an NFT. The seller has 24-25 hours to accept the offer. During this time, the collector's funds are locked in the FETH ERC-20 contract - ensuring that an offer remains valid until its expiration. If a higher offer is made, the original user's FETH balance is unlocked and they can use those funds elsewhere (or withdraw the ETH).
 
 All sales in the Foundation market will pay the creator 10% royalties on secondary sales. This is not specific to NFTs minted on Foundation, it should work for any NFT. If royalty information was not defined when the NFT was originally deployed, it may be added using the [Royalty Registry](https://royaltyregistry.xyz/) which will be respected by our market contract.
 
@@ -34,7 +34,6 @@ Below is a diagram depicting the marketplace states and transitions for the vari
 
 - [FETH](/docs/FETH.md)
 - [Market](/docs/FNDNFTMarket.md)
-- [Treasury](/docs/FoundationTreasury.md)
 
 ## Dependencies
 
@@ -142,3 +141,20 @@ These are known issues or areas for improvement that are out of scope from the c
   - Impact NFTs could register an override with the royalty registry to work around this limitation.
 - There is room to optimize the storage for auctions, significantly reducing gas costs.
   - This may be done in the future, but for now it will remain as is in order to ease upgrade compatibility.
+
+## Gas and contract-size optimization award pot
+
+Transactions on Ethereum are pretty expensive, so we are interested in optimizations where possible.
+
+- Optimizations must be >= 100 gas saved to be eligible for a reward.
+- No features / functionality should be lost.
+
+Contract bytecode must be <= 24.576 KB in order to deploy to the Ethereum network. Our market contract currently sits at 23.765 KB. We need help making room for our next set of features!
+
+- Optimizations must be >= 0.1 KB to be eligible for a reward.
+- They should not cause gas costs to go up for users.
+- No features / functionality should be lost.
+
+### **How-to submit**
+
+For both categories (gas and size) select `Risk rating`: **`Gas Optimizations`** on the [C4 submission form](https://code4rena.com/contests/2022-02-foundation-contest/submit). In the description, please make it clear which you are optimizing for.

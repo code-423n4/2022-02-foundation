@@ -9,6 +9,9 @@ import { signPrivateSale } from "../../helpers/privateSale";
 import { getBlockTime } from "../../helpers/time";
 
 describe("market / privateSale / buyFor", function () {
+  const tokenId = 1;
+  const price = ethers.utils.parseEther("1");
+
   let treasury: FoundationTreasury;
   let market: FNDNFTMarket;
   let nft: MockNFT;
@@ -18,7 +21,6 @@ describe("market / privateSale / buyFor", function () {
   let collector: SignerWithAddress;
   let bidder: SignerWithAddress;
   let tx: ContractTransaction;
-  const price = ethers.utils.parseEther("1");
   let deadline: number;
   let signature: Signature;
 
@@ -35,7 +37,7 @@ describe("market / privateSale / buyFor", function () {
 
     // Sign a private sale offer
     deadline = (await getBlockTime()) + ONE_DAY;
-    signature = await signPrivateSale(market, nft, 1, creator, collector, price, deadline);
+    signature = await signPrivateSale(market, nft, tokenId, creator, collector, price, deadline);
   });
 
   describe("`buyFromPrivateSaleFor`", () => {
@@ -43,7 +45,7 @@ describe("market / privateSale / buyFor", function () {
       // Not sending ETH, the available FETH balance will be used instead
       tx = await market
         .connect(collector)
-        .buyFromPrivateSaleFor(nft.address, 1, price, deadline, signature.v, signature.r, signature.s);
+        .buyFromPrivateSaleFor(nft.address, tokenId, price, deadline, signature.v, signature.r, signature.s);
     });
 
     it("Emits PrivateSaleFinalized", async () => {
@@ -51,7 +53,7 @@ describe("market / privateSale / buyFor", function () {
         .to.emit(market, "PrivateSaleFinalized")
         .withArgs(
           nft.address,
-          1,
+          tokenId,
           creator.address,
           collector.address,
           price.mul(15).div(100),
@@ -69,7 +71,7 @@ describe("market / privateSale / buyFor", function () {
     });
 
     it("Transfers NFT to the new owner", async () => {
-      const ownerOf = await nft.ownerOf(1);
+      const ownerOf = await nft.ownerOf(tokenId);
       expect(ownerOf).to.eq(collector.address);
     });
 

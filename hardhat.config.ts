@@ -2,6 +2,7 @@ import "@nomiclabs/hardhat-waffle";
 import "@typechain/hardhat";
 import "@nomiclabs/hardhat-ethers";
 import "@nomiclabs/hardhat-waffle";
+import "hardhat-gas-reporter";
 import "@openzeppelin/hardhat-upgrades";
 import { HardhatUserConfig } from "hardhat/types";
 
@@ -18,6 +19,9 @@ const config: HardhatUserConfig = {
   typechain: {
     target: "ethers-v5",
     externalArtifacts: ["node_modules/@manifoldxyz/royalty-registry-solidity/build/contracts/*.json"],
+  },
+  gasReporter: {
+    excludeContracts: ["mocks/", "FoundationTreasury.sol", "ERC721.sol"],
   },
 };
 

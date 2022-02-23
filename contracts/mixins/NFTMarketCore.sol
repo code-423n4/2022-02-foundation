@@ -118,10 +118,10 @@ abstract contract NFTMarketCore is Constants {
    */
   function _getMinIncrement(uint256 currentAmount) internal pure returns (uint256) {
     uint256 minIncrement = currentAmount * MIN_PERCENT_INCREMENT_IN_BASIS_POINTS;
-    // Since minIncrement reduces from the currentAmount, this cannot overflow.
     unchecked {
       minIncrement /= BASIS_POINTS;
       if (minIncrement == 0) {
+        // Since minIncrement reduces from the currentAmount, this cannot overflow.
         // The next amount must be at least 1 wei greater than the current.
         return currentAmount + 1;
       }

@@ -245,7 +245,7 @@ abstract contract NFTMarketBuyPrice is NFTMarketCore, NFTMarketFees {
     }
 
     // Transfer the NFT to the buyer.
-    // This will revert if the `msg.sender` is not the owner of this NFT.
+    // This should revert if the `msg.sender` is not the owner of this NFT.
     _transferFromEscrow(nftContract, tokenId, msg.sender, buyPrice.seller);
 
     // Distribute revenue for this sale.
@@ -319,8 +319,6 @@ abstract contract NFTMarketBuyPrice is NFTMarketCore, NFTMarketFees {
       // The NFT is not in escrow for buy now.
       super._transferToEscrow(nftContract, tokenId);
     } else if (buyPrice.seller != msg.sender) {
-      // This check is redundant with the one above, but done in order to provide a more clear error message.
-
       // When there is a buy price set, the `buyPrice.seller` is the owner of the NFT.
       revert NFTMarketBuyPrice_Seller_Mismatch(buyPrice.seller);
     }

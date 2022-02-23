@@ -4,7 +4,7 @@
 
 > An ERC-20 token which wraps ETH, potentially with a 1 day lockup period.
 
-This token works very similarly to the WETH token. Except the Foundation market may request funds are locked for 24-25 hours, guaranteeing that an offer remains available during that time.
+FETH is an [ERC-20 token](https://eips.ethereum.org/EIPS/eip-20) modeled after [WETH9](https://etherscan.io/address/0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2#code). It has the added ability to lockup tokens for 24-25 hours - during this time they may not be transferred or withdrawn, except by our market contract which requested the lockup in the first place.
 
 *Locked balances are rounded up to the next hour. They are grouped by the expiration time of the lockup into what we refer to as a lockup &quot;bucket&quot;. At any time there may be up to 25 buckets but never more than that which prevents loops from exhausting gas limits.*
 
@@ -626,6 +626,17 @@ error FETH_Market_Must_Be_A_Contract()
 
 
 
+### FETH_Must_Deposit_Non_Zero_Amount
+
+```solidity
+error FETH_Must_Deposit_Non_Zero_Amount()
+```
+
+
+
+
+
+
 ### FETH_Must_Lockup_Non_Zero_Amount
 
 ```solidity
@@ -674,6 +685,17 @@ error FETH_Too_Much_ETH_Provided()
 
 ```solidity
 error FETH_Transfer_To_Burn_Not_Allowed()
+```
+
+
+
+
+
+
+### FETH_Transfer_To_FETH_Not_Allowed
+
+```solidity
+error FETH_Transfer_To_FETH_Not_Allowed()
 ```
 
 

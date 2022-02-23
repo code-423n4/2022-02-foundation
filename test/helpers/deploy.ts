@@ -1,8 +1,6 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { upgrades } from "hardhat";
 import {
-  AccountMigrationLibrary,
-  AccountMigrationLibrary__factory,
   EmptyMockContract__factory,
   FETH,
   FETH__factory,
@@ -37,9 +35,8 @@ export async function deployContracts({
   creator?: SignerWithAddress;
 }): Promise<Contracts> {
   const treasury = await deployTreasury({ deployer, defaultAdmin, defaultOperator });
-  const accountMigrationLibrary = await deployAccountMigrationLibrary(deployer);
   const royaltyRegistry = await deployRoyaltyRegistry(deployer);
-  const { market, feth } = await deployMarketAndFETH({ deployer, treasury, accountMigrationLibrary, royaltyRegistry });
+  const { market, feth } = await deployMarketAndFETH({ deployer, treasury, royaltyRegistry });
   const nft = await deployMockNFT(creator ?? deployer);
 
   return { treasury, market, feth, royaltyRegistry, nft };
@@ -61,11 +58,6 @@ export async function deployTreasury({
   await treasury.connect(admin).grantOperator(operator.address);
 
   return treasury;
-}
-
-export async function deployAccountMigrationLibrary(deployer: SignerWithAddress): Promise<AccountMigrationLibrary> {
-  const AccountMigrationLibrary = new AccountMigrationLibrary__factory(deployer);
-  return await AccountMigrationLibrary.deploy();
 }
 
 export async function deployRoyaltyRegistry(deployer: SignerWithAddress): Promise<RoyaltyRegistry> {
@@ -97,22 +89,17 @@ export async function deployFETH({
 export async function deployMarketAndFETH({
   deployer,
   treasury,
-  accountMigrationLibrary,
   royaltyRegistry,
 }: {
   deployer: SignerWithAddress;
   treasury: FoundationTreasury;
-  accountMigrationLibrary: AccountMigrationLibrary;
   royaltyRegistry: RoyaltyRegistry;
 }): Promise<{ market: FNDNFTMarket; feth: FETH }> {
   // Create a proxy to an empty mock in order to determine the proxy address to be used in constructor args
   const mockFactory = new EmptyMockContract__factory(deployer);
   const marketProxy = await upgrades.deployProxy(mockFactory);
   const feth = await deployFETH({ deployer, marketAddress: marketProxy.address });
-  const Market = new FNDNFTMarket__factory(
-    { "contracts/libraries/AccountMigrationLibrary.sol:AccountMigrationLibrary": accountMigrationLibrary.address },
-    deployer,
-  );
+  const Market = new FNDNFTMarket__factory(deployer);
   const market = (await upgrades.upgradeProxy(marketProxy, Market, {
     unsafeAllow: ["state-variable-immutable", "constructor"], // https://docs.openzeppelin.com/upgrades-plugins/1.x/faq#why-cant-i-use-immutable-variables
     constructorArgs: [

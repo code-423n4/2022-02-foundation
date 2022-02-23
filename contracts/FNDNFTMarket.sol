@@ -58,6 +58,12 @@ import "./mixins/SendValueWithFallbackWithdraw.sol";
 
 /**
  * @title A market for NFTs on Foundation.
+ * @notice The Foundation marketplace is a contract which allows traders to buy and sell NFTs.
+ * It supports buying and selling via auctions, private sales, buy price, and offers.
+ * @dev All sales in the Foundation market will pay the creator 10% royalties on secondary sales. This is not specific
+ * to NFTs minted on Foundation, it should work for any NFT. If royalty information was not defined when the NFT was
+ * originally deployed, it may be added using the [Royalty Registry](https://royaltyregistry.xyz/) which will be
+ * respected by our market contract.
  */
 contract FNDNFTMarket is
   Constants,

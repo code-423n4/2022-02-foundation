@@ -129,9 +129,13 @@ abstract contract NFTMarketPrivateSale is NFTMarketFees {
     bytes32 r,
     bytes32 s
   ) public payable nonReentrant {
-    // Private sales typically expire in 24 hours, but 2 days is used here in order to ensure
-    // that transactions do not fail due to a minor timezone error or similar during signing.
-    if (deadline > block.timestamp + 2 days) {
+    if (deadline < block.timestamp) {
+      // The signed message from the seller has expired.
+      revert NFTMarketPrivateSale_Sale_Expired();
+    } else if (deadline > block.timestamp + 2 days) {
+      // Private sales typically expire in 24 hours, but 2 days is used here in order to ensure
+      // that transactions do not fail due to a minor timezone error or similar during signing.
+
       // This prevents malicious actors from requesting signatures that never expire.
       revert NFTMarketPrivateSale_Can_Be_Offered_For_24Hrs_Max();
     }
@@ -147,11 +151,6 @@ abstract contract NFTMarketPrivateSale is NFTMarketFees {
     } else if (amount < msg.value) {
       // The terms of the sale cannot change, so if too much ETH is sent then something went wrong.
       revert NFTMarketPrivateSale_Too_Much_Value_Provided();
-    }
-
-    if (deadline < block.timestamp) {
-      // The signed message from the seller has expired.
-      revert NFTMarketPrivateSale_Sale_Expired();
     }
 
     // The seller must have the NFT in their wallet when this function is called,
@@ -174,7 +173,7 @@ abstract contract NFTMarketPrivateSale is NFTMarketFees {
       }
     }
 
-    // This will revert if the seller has not given the market contract approval.
+    // This should revert if the seller has not given the market contract approval.
     nftContract.transferFrom(seller, msg.sender, tokenId);
 
     // Distribute revenue for this sale.
