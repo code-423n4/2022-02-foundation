@@ -1,4 +1,3 @@
-- [ ] TODO: add additional tests
 - [ ] TODO: update the code to the latest
 - [ ] TODO: fix event documentation
 
