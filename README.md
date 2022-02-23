@@ -1,5 +1,3 @@
-- [ ] TODO: fix event documentation
-
 # Foundation contest details
 
 - \$71,250 USDC main award pot
