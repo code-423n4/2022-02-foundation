@@ -16,6 +16,8 @@ error NFTMarketOffer_Cannot_Be_Accepted_While_In_Auction();
 error NFTMarketOffer_Offer_Below_Min_Amount(uint256 currentOfferAmount);
 /// @param expiry The time at which the offer had expired.
 error NFTMarketOffer_Offer_Expired(uint256 expiry);
+/// @param currentOfferFrom The address of the collector which has made the current highest offer.
+error NFTMarketOffer_Offer_From_Does_Not_Match(address currentOfferFrom);
 /// @param minOfferAmount The minimum amount that must be offered in order for it to be accepted.
 error NFTMarketOffer_Offer_Must_Be_At_Least_Min_Amount(uint256 minOfferAmount);
 error NFTMarketOffer_Reason_Required();
@@ -107,12 +109,18 @@ abstract contract NFTMarketOffer is FoundationTreasuryNode, NFTMarketCore, Reent
    * available in the market contract's escrow.
    * @param nftContract The address of the NFT contract.
    * @param tokenId The id of the NFT.
-   * @param minAmount The minimum value of the highest offer for it to be accepted. This protects the seller
-   * in case an offer expires and allows another buyer to increase the highest available offer.
+   * @param offerFrom The address of the collector that you wish to sell to.
+   * If the current highest offer is not from this user, the transaction will revert.
+   * This could happen if a last minute offer was made by another collector,
+   * and would require the seller to try accepting again.
+   * @param minAmount The minimum value of the highest offer for it to be accepted.
+   * If the value is less than this amount, the transaction will revert.
+   * This could happen if the original offer expires and is replaced with a smaller offer.
    */
   function acceptOffer(
     address nftContract,
     uint256 tokenId,
+    address offerFrom,
     uint256 minAmount
   ) external nonReentrant {
     Offer storage offer = nftContractToIdToOffer[nftContract][tokenId];
@@ -121,6 +129,10 @@ abstract contract NFTMarketOffer is FoundationTreasuryNode, NFTMarketCore, Reent
       revert NFTMarketOffer_Offer_Expired(offer.expiration);
     } else if (offer.amount < minAmount) {
       revert NFTMarketOffer_Offer_Below_Min_Amount(offer.amount);
+    }
+    // Validate the buyer
+    if (offer.buyer != offerFrom) {
+      revert NFTMarketOffer_Offer_From_Does_Not_Match(offer.buyer);
     }
 
     _acceptOffer(nftContract, tokenId);
@@ -254,7 +266,7 @@ abstract contract NFTMarketOffer is FoundationTreasuryNode, NFTMarketCore, Reent
       // NFT was in the seller's wallet so the transfer is complete.
     } catch {
       // If the transfer fails then attempt to transfer from escrow instead.
-      // This will revert if the NFT is not in escrow of the `msg.sender` is not the owner of this NFT.
+      // This should revert if the NFT is not in escrow of the `msg.sender` is not the owner of this NFT.
       _transferFromEscrow(nftContract, tokenId, offer.buyer, msg.sender);
     }
 
@@ -322,14 +334,14 @@ abstract contract NFTMarketOffer is FoundationTreasuryNode, NFTMarketCore, Reent
    * @notice Invalidates the offer and frees ETH from escrow, if the offer has not already expired.
    */
   function _invalidateOffer(address nftContract, uint256 tokenId) private {
-    Offer storage offer = nftContractToIdToOffer[nftContract][tokenId];
-    if (offer.expiration >= block.timestamp) {
+    if (nftContractToIdToOffer[nftContract][tokenId].expiration >= block.timestamp) {
       // An offer was found and it has not already expired
+      Offer memory offer = nftContractToIdToOffer[nftContract][tokenId];
 
-      // Unlock the offer so that the FETH tokens are available for other offers or to transfer / withdraw
-      feth.marketUnlockFor(offer.buyer, offer.expiration, offer.amount);
       // Remove offer
       delete nftContractToIdToOffer[nftContract][tokenId];
+      // Unlock the offer so that the FETH tokens are available for other offers or to transfer / withdraw
+      feth.marketUnlockFor(offer.buyer, offer.expiration, offer.amount);
 
       emit OfferInvalidated(nftContract, tokenId);
     }

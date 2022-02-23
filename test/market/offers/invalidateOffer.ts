@@ -7,7 +7,10 @@ import { deployContracts } from "../../helpers/deploy";
 import { getFethExpectedExpiration } from "../../helpers/feth";
 
 describe("market / offers / invalidateOffer", function () {
-  let treasury: FoundationTreasury;
+  const tokenId = 1;
+  const auctionId = 1;
+  const price = ethers.utils.parseEther("1");
+
   let market: FNDNFTMarket;
   let nft: MockNFT;
   let feth: FETH;
@@ -16,38 +19,37 @@ describe("market / offers / invalidateOffer", function () {
   let collector: SignerWithAddress;
   let bidder: SignerWithAddress;
   let tx: ContractTransaction;
-  const price = ethers.utils.parseEther("1");
   let expiry: number;
 
   beforeEach(async () => {
     [deployer, creator, collector, bidder] = await ethers.getSigners();
-    ({ treasury, nft, market, feth } = await deployContracts({ deployer, creator }));
+    ({ nft, market, feth } = await deployContracts({ deployer, creator }));
 
     // Mint and approve NFT 1 for testing
     await nft.mint();
     await nft.setApprovalForAll(market.address, true);
 
     // Make an offer
-    tx = await market.connect(collector).makeOffer(nft.address, 1, price, { value: price });
+    tx = await market.connect(collector).makeOffer(nft.address, tokenId, price, { value: price });
     expiry = await getFethExpectedExpiration(tx);
 
     // Create an auction to invalidate the offer
-    await market.connect(creator).createReserveAuction(nft.address, 1, price);
+    await market.connect(creator).createReserveAuction(nft.address, tokenId, price);
   });
 
   it("The offer is still valid when there is a reserve price", async () => {
-    const offer = await market.getOffer(nft.address, 1);
+    const offer = await market.getOffer(nft.address, tokenId);
     expect(offer.amount).to.eq(price);
   });
 
   describe("Invalidate on auction start", () => {
     beforeEach(async () => {
-      // The first bid invalidates the highest offer
-      tx = await market.connect(bidder).placeBid(1, { value: price });
+      // When a bid is placed, the NFT is reserved for the winner of the auction
+      tx = await market.connect(bidder).placeBid(auctionId, { value: price });
     });
 
     it("Emits OfferInvalidated", async () => {
-      await expect(tx).to.emit(market, "OfferInvalidated").withArgs(nft.address, 1);
+      await expect(tx).to.emit(market, "OfferInvalidated").withArgs(nft.address, tokenId);
     });
 
     it("The FETH balance is now available for use", async () => {
@@ -61,7 +63,7 @@ describe("market / offers / invalidateOffer", function () {
     });
 
     it("The offer is no longer found", async () => {
-      const offer = await market.getOffer(nft.address, 1);
+      const offer = await market.getOffer(nft.address, tokenId);
       expect(offer.amount).to.eq(0);
       expect(offer.buyer).to.eq(ethers.constants.AddressZero);
     });

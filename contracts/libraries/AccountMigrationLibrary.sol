@@ -30,7 +30,7 @@ library AccountMigrationLibrary {
     address originalAddress,
     address newAddress,
     bytes memory signature
-  ) external view {
+  ) internal view {
     if (originalAddress == newAddress) {
       revert AccountMigrationLibrary_Cannot_Migrate_Account_To_Itself();
     }

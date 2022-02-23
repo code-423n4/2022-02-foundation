@@ -5,11 +5,11 @@ import { ethers } from "hardhat";
 import { FNDNFTMarket, FoundationTreasury, MockNFT } from "../../../typechain-types";
 import { deployContracts } from "../../helpers/deploy";
 
-describe("market / buyPrice / buy", function () {
+describe("market / buyPrice / invalidateBuyPrice", function () {
   const tokenId = 1;
+  const auctionId = 1;
   const price = ethers.utils.parseEther("1");
 
-  let treasury: FoundationTreasury;
   let market: FNDNFTMarket;
   let nft: MockNFT;
   let deployer: SignerWithAddress;
@@ -22,7 +22,7 @@ describe("market / buyPrice / buy", function () {
 
   beforeEach(async () => {
     [deployer, admin, creator, collector, withdrawToWallet, user] = await ethers.getSigners();
-    ({ treasury, nft, market } = await deployContracts({ deployer, creator }));
+    ({ nft, market } = await deployContracts({ deployer, creator }));
 
     // Mint and approve NFT 1 for testing
     await nft.mint();
@@ -30,37 +30,19 @@ describe("market / buyPrice / buy", function () {
 
     // Set a price
     await market.connect(creator).setBuyPrice(nft.address, tokenId, price);
+
+    // Create an auction
+    await market.connect(creator).createReserveAuction(nft.address, tokenId, price);
   });
 
-  describe("`buy`", () => {
+  describe("The buy price is invalidated when the first bid is placed", () => {
     beforeEach(async () => {
-      tx = await market.connect(collector).buy(nft.address, tokenId, price, { value: price });
+      // When a bid is placed, the NFT is reserved for the winner of the auction
+      tx = await market.connect(collector).placeBid(auctionId, { value: price });
     });
 
-    it("Emits BuyPriceAccepted", async () => {
-      await expect(tx)
-        .to.emit(market, "BuyPriceAccepted")
-        .withArgs(
-          nft.address,
-          tokenId,
-          creator.address,
-          collector.address,
-          price.mul(15).div(100),
-          price.mul(85).div(100),
-          0,
-        );
-    });
-
-    it("Transfers ETH", async () => {
-      await expect(tx).to.changeEtherBalances(
-        [collector, creator, treasury],
-        [price.mul(-1), price.mul(85).div(100), price.mul(15).div(100)],
-      );
-    });
-
-    it("Transfers NFT to the new owner", async () => {
-      const ownerOf = await nft.ownerOf(tokenId);
-      expect(ownerOf).to.eq(collector.address);
+    it("Emits BuyPriceInvalidated", async () => {
+      await expect(tx).to.emit(market, "BuyPriceInvalidated").withArgs(nft.address, tokenId);
     });
   });
 });

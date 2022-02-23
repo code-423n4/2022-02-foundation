@@ -6,6 +6,8 @@ import { FoundationTreasury } from "../typechain-types";
 import { deployContracts } from "./helpers/deploy";
 
 describe("Treasury", function () {
+  const value = ethers.utils.parseEther("1");
+
   let treasury: FoundationTreasury;
   let deployer: SignerWithAddress;
   let admin: SignerWithAddress;
@@ -21,32 +23,27 @@ describe("Treasury", function () {
     // Deposit funds, typically they come from the market contract
     await user.sendTransaction({
       to: treasury.address,
-      value: ethers.utils.parseEther("1"),
+      value,
     });
   });
 
   describe("Admins can withdraw funds", () => {
     beforeEach(async () => {
-      tx = await treasury.connect(admin).withdrawFunds(withdrawToWallet.address, ethers.utils.parseEther("1"));
+      tx = await treasury.connect(admin).withdrawFunds(withdrawToWallet.address, value);
     });
 
     it("Changes balances", async () => {
-      await expect(tx).to.changeEtherBalances(
-        [treasury, withdrawToWallet],
-        [ethers.utils.parseEther("-1"), ethers.utils.parseEther("1")],
-      );
+      await expect(tx).to.changeEtherBalances([treasury, withdrawToWallet], [value.mul(-1), value]);
     });
 
     it("Emits FundsWithdrawn", async () => {
-      await expect(tx)
-        .to.emit(treasury, "FundsWithdrawn")
-        .withArgs(withdrawToWallet.address, ethers.utils.parseEther("1"));
+      await expect(tx).to.emit(treasury, "FundsWithdrawn").withArgs(withdrawToWallet.address, value);
     });
   });
 
   it("Other users cannot withdraw", async () => {
-    await expect(
-      treasury.connect(user).withdrawFunds(withdrawToWallet.address, ethers.utils.parseEther("1")),
-    ).to.be.revertedWith("AdminRole: caller does not have the Admin role");
+    await expect(treasury.connect(user).withdrawFunds(withdrawToWallet.address, value)).to.be.revertedWith(
+      "AdminRole: caller does not have the Admin role",
+    );
   });
 });

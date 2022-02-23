@@ -7,6 +7,9 @@ import { deployContracts } from "../../helpers/deploy";
 import { getFethExpectedExpiration } from "../../helpers/feth";
 
 describe("market / offers / acceptOffer", function () {
+  const tokenId = 1;
+  const price = ethers.utils.parseEther("1");
+
   let treasury: FoundationTreasury;
   let market: FNDNFTMarket;
   let nft: MockNFT;
@@ -15,7 +18,6 @@ describe("market / offers / acceptOffer", function () {
   let creator: SignerWithAddress;
   let collector: SignerWithAddress;
   let tx: ContractTransaction;
-  const price = ethers.utils.parseEther("1");
   let expiry: number;
 
   beforeEach(async () => {
@@ -27,13 +29,13 @@ describe("market / offers / acceptOffer", function () {
     await nft.setApprovalForAll(market.address, true);
 
     // Make an offer to accept
-    tx = await market.connect(collector).makeOffer(nft.address, 1, price, { value: price });
+    tx = await market.connect(collector).makeOffer(nft.address, tokenId, price, { value: price });
     expiry = await getFethExpectedExpiration(tx);
   });
 
   describe("`acceptOffer`", () => {
     beforeEach(async () => {
-      tx = await market.connect(creator).acceptOffer(nft.address, 1, price);
+      tx = await market.connect(creator).acceptOffer(nft.address, tokenId, collector.address, price);
     });
 
     it("Emits OfferAccepted", async () => {
@@ -41,7 +43,7 @@ describe("market / offers / acceptOffer", function () {
         .to.emit(market, "OfferAccepted")
         .withArgs(
           nft.address,
-          1,
+          tokenId,
           collector.address,
           creator.address,
           price.mul(15).div(100),

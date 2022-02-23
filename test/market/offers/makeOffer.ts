@@ -7,6 +7,9 @@ import { deployContracts } from "../../helpers/deploy";
 import { getFethExpectedExpiration } from "../../helpers/feth";
 
 describe("market / offers / makeOffer", function () {
+  const tokenId = 1;
+  const price = ethers.utils.parseEther("1");
+
   let market: FNDNFTMarket;
   let nft: MockNFT;
   let feth: FETH;
@@ -14,7 +17,6 @@ describe("market / offers / makeOffer", function () {
   let creator: SignerWithAddress;
   let collector: SignerWithAddress;
   let tx: ContractTransaction;
-  const price = ethers.utils.parseEther("1");
   let expiry: number;
 
   beforeEach(async () => {
@@ -28,12 +30,12 @@ describe("market / offers / makeOffer", function () {
 
   describe("`makeOffer`", () => {
     beforeEach(async () => {
-      tx = await market.connect(collector).makeOffer(nft.address, 1, price, { value: price });
+      tx = await market.connect(collector).makeOffer(nft.address, tokenId, price, { value: price });
       expiry = await getFethExpectedExpiration(tx);
     });
 
     it("Emits OfferMade", async () => {
-      await expect(tx).to.emit(market, "OfferMade").withArgs(nft.address, 1, collector.address, price, expiry);
+      await expect(tx).to.emit(market, "OfferMade").withArgs(nft.address, tokenId, collector.address, price, expiry);
     });
 
     it("Transfers ETH into FETH", async () => {

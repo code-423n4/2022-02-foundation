@@ -87,6 +87,13 @@ library LockedBalance {
 
   /**
    * @notice Returns the Lockup at the provided index.
+   * @dev To get the lockup stored in the *first* 128 bits (first slot/lockup):
+   *       - we remove the last 128 bits (done by >> 128)
+   *      To get the lockup stored in the *last* 128 bits (second slot/lockup):
+   *       - we take the last 128 bits (done by % (2**128))
+   *      Once the lockup is obtained:
+   *       - get `expiration` by peaking at the first 32 bits (done by >> 96)
+   *       - get `totalAmount` by peaking at the last 96 bits (done by % (2**96))
    */
   function get(Lockups storage lockups, uint256 index) internal view returns (Lockup memory) {
     unchecked {

@@ -58,17 +58,20 @@ error FETH_Insufficient_Available_Funds(uint256 amount);
 error FETH_Insufficient_Escrow(uint256 amount);
 error FETH_Invalid_Lockup_Duration();
 error FETH_Market_Must_Be_A_Contract();
+error FETH_Must_Deposit_Non_Zero_Amount();
 error FETH_Must_Lockup_Non_Zero_Amount();
 error FETH_No_Funds_To_Withdraw();
 error FETH_Only_FND_Market_Allowed();
 error FETH_Too_Much_ETH_Provided();
 error FETH_Transfer_To_Burn_Not_Allowed();
+error FETH_Transfer_To_FETH_Not_Allowed();
 
 /**
  * @title An ERC-20 token which wraps ETH, potentially with a 1 day lockup period.
- * @notice This token works very similarly to the WETH token.
- * Except the Foundation market may request funds are locked for 24-25 hours,
- * guaranteeing that an offer remains available during that time.
+ * @notice FETH is an [ERC-20 token](https://eips.ethereum.org/EIPS/eip-20) modeled after
+ * [WETH9](https://etherscan.io/address/0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2#code).
+ * It has the added ability to lockup tokens for 24-25 hours - during this time they may not be
+ * transferred or withdrawn, except by our market contract which requested the lockup in the first place.
  * @dev Locked balances are rounded up to the next hour.
  * They are grouped by the expiration time of the lockup into what we refer to as a lockup "bucket".
  * At any time there may be up to 25 buckets but never more than that which prevents loops from exhausting gas limits.
@@ -227,6 +230,9 @@ contract FETH {
    * @param account The account to credit with FETH tokens.
    */
   function depositFor(address account) public payable {
+    if (msg.value == 0) {
+      revert FETH_Must_Deposit_Non_Zero_Amount();
+    }
     AccountInfo storage accountInfo = accountToInfo[account];
     // ETH value cannot realistically overflow 96 bits.
     unchecked {
@@ -363,8 +369,10 @@ contract FETH {
     address to,
     uint256 amount
   ) public returns (bool success) {
-    if (to == address(0) || to == address(this)) {
+    if (to == address(0)) {
       revert FETH_Transfer_To_Burn_Not_Allowed();
+    } else if (to == address(this)) {
+      revert FETH_Transfer_To_FETH_Not_Allowed();
     }
     AccountInfo storage fromAccountInfo = _freeFromEscrow(from);
     if (from != msg.sender) {
@@ -650,7 +658,7 @@ contract FETH {
    * @param operator The address with approval to spend from the `account`'s balance.
    * @return amount The number of tokens the `operator` is still allowed to transact with.
    */
-  function allowance(address account, address operator) public view returns (uint256 amount) {
+  function allowance(address account, address operator) external view returns (uint256 amount) {
     AccountInfo storage accountInfo = accountToInfo[account];
     return accountInfo.allowance[operator];
   }

@@ -97,7 +97,7 @@ abstract contract NFTMarketReserveAuction is
    */
   uint256[5] private __gap_was_config;
 
-  /// @notice How long an auction lasts for once the first bid has been receieved.
+  /// @notice How long an auction lasts for once the first bid has been received.
   uint256 private immutable DURATION;
 
   /// @notice The window for auction extensions, any bid placed in the final 15 minutes
@@ -329,7 +329,7 @@ abstract contract NFTMarketReserveAuction is
   ) external nonReentrant onlyValidAuctionConfig(reservePrice) {
     uint256 auctionId = _getNextAndIncrementAuctionId();
 
-    // If the `msg.sender` is not the owner of the NFT, transferring into escrow will fail.
+    // If the `msg.sender` is not the owner of the NFT, transferring into escrow should fail.
     _transferToEscrow(nftContract, tokenId);
 
     // Store the auction details
@@ -384,7 +384,10 @@ abstract contract NFTMarketReserveAuction is
    */
   /* solhint-disable-next-line code-complexity */
   function placeBidOf(uint256 auctionId, uint256 amount) public payable nonReentrant {
-    if (amount > msg.value) {
+    if (amount < msg.value) {
+      // The amount is specified by the bidder, so if too much ETH is sent then something went wrong.
+      revert NFTMarketReserveAuction_Too_Much_Value_Provided();
+    } else if (amount > msg.value) {
       // Withdraw additional ETH required from their available FETH balance.
 
       unchecked {
@@ -394,9 +397,6 @@ abstract contract NFTMarketReserveAuction is
         // Withdraw ETH from the buyer's account in the FETH token contract.
         feth.marketWithdrawFrom(msg.sender, delta);
       }
-    } else if (amount < msg.value) {
-      // The amount is specified by the bidder, so if too much ETH is sent then something went wrong.
-      revert NFTMarketReserveAuction_Too_Much_Value_Provided();
     }
 
     ReserveAuction storage auction = auctionIdToAuction[auctionId];
@@ -448,7 +448,7 @@ abstract contract NFTMarketReserveAuction is
         // When a bid outbids another, check to see if a time extension should apply.
         // We confirmed that the auction has not ended, so endTime is always >= the current timestamp.
         if (auction.endTime - block.timestamp < auction.extensionDuration) {
-          // Current time plus extension duration (always 15min) cannot overflow.
+          // Current time plus extension duration (always 15 mins) cannot overflow.
           auction.endTime = block.timestamp + auction.extensionDuration;
         }
       }
