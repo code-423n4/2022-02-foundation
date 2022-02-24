@@ -24,7 +24,7 @@ All sales in the Foundation market will pay the creator 10% royalties on seconda
 
 Below is a diagram depicting the marketplace states and transitions for the various market tools.
 
-![Alt text](docs/images/MarketplaceStateMachine.png?raw=true "Marketplace State Machine")
+<img width="5522" alt="MarketplaceStateMachine" src="https://user-images.githubusercontent.com/14855515/155433938-428f475f-2c6d-441f-9502-674d0f7953fc.png">
 
 # Contracts
 
@@ -46,7 +46,7 @@ In order to maintain readability as our contracts grow in complexity, we separat
 
 Below is a diagram depicting the relationships between various contracts.
 
-![Alt text](docs/images/UMLContractDiagram.png?raw=true "Contract UML")
+<img width="2804" alt="UMLContractDiagram" src="https://user-images.githubusercontent.com/14855515/155433971-d048e5dc-86dc-49fd-8c0e-b930117867c5.png">
 
 ## FETH ERC-20 token
 
